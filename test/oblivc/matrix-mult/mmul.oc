@@ -1,0 +1,124 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <obliv.oh>
+
+#include "mmul.h"
+#include "dbg.h"
+
+void toObliv(protocolIO *io, obliv float **oa, float **a, int m, int n, int party) 
+{
+    // log_info("party arg: %d\n", party);
+    // log_info("size1: %d x %d\n", m, n);
+    for(int i=0; i< m; i++)
+    {
+        for(int j=0; j< n; j++)
+        {
+            // log_info("party %d %d %d %lf\n", party, i, j, a[i][j]);
+            oa[i][j] = feedOblivFloat(a[i][j], party);
+            // log_info("snap snap\n");
+        }
+    }
+}
+
+void matrix_mult(protocolIO *io, obliv float **omat1, obliv float **omat2, int m, int n, int common)
+{
+    obliv float **omat3 = malloc(sizeof *omat3 * m);
+    for(int i=0; i<m; i++)
+        omat3[i] = malloc(sizeof *omat2[i] * n);
+    // log_info("make output matrix %d %d %d\n", m, n, common);
+    io->res_m = m;
+    io->res_n = n;
+    for(int i=0; i<m; i++)
+    {
+        for(int j=0; j<n; j++)
+        {
+            omat3[i][j] = 0;
+            for(int k=0; k<common; k++)
+            {
+                // log_info("checking out %d %d %d\n", i, j, k);
+                omat3[i][j] = omat3[i][j] + (omat1[i][k] * omat2[k][j]);
+            }
+            // log_info("The error is here\n");
+            revealOblivFloat(&io->result[i][j], omat3[i][j], 1);
+            // printf("%f ", io->result);
+            // log_info("No error here\n");
+        }
+        // putchar('\n');
+    }
+}
+
+void matmul(void *args)
+{
+    protocolIO *io = (protocolIO*)args;
+
+    // The two input matrices
+    // Allocate memory after getting value
+    float **mat1 = malloc(sizeof(float *) * ALLOC);
+    float **mat2 = malloc(sizeof(float *) * ALLOC);
+    for(int i=0; i<ALLOC; i++)
+    {
+        mat1[i] = malloc(sizeof(float) * ALLOC);
+        mat2[i] = malloc(sizeof(float) * ALLOC);
+    }
+
+    // load input matrices
+    load_data(io, &mat1, &mat2, ocCurrentParty());
+
+    // log_info("matval 1: %lf\n", mat1[0][0]);
+    // log_info("matval 2: %lf\n", mat2[0][0]);
+
+    // get the input dimensions
+    int m1, n1, m2, n2;
+    m1 = ocBroadcastInt(io->m1, 1);
+    n1 = ocBroadcastInt(io->n1, 1);
+    m2 = ocBroadcastInt(io->m2, 2);
+    n2 = ocBroadcastInt(io->n2, 2);
+
+    // verify if shapes are okay for multiplication
+    if(n1 != m2)
+    {
+        log_err("Matrix size %d x %d cannot be multiplied with matrix size %d x %d", m1, n1, m2, n2);
+        clean_errno();
+        exit(1);
+    }
+
+    log_info("Dims: %d x %d to %d x %d\n", m1, n1, m2, n2);
+
+
+    obliv float **omat1 = malloc((sizeof *omat1) * m1);
+    obliv float **omat2 = malloc((sizeof *omat2) * m2);
+
+    for(int i=0; i<m1; i++)
+        omat1[i] = malloc(sizeof *omat1[i] * n1);
+
+    for(int i=0; i<m2; i++)
+        omat2[i] = malloc(sizeof *omat2[i] * n2);
+    
+    log_info("START\n");
+    toObliv(io, omat1, mat1, m1, n1, 1);
+    toObliv(io, omat2, mat2, m2, n2, 2);
+
+    if(mat1)
+    {
+        for(int i=0; i<m1; i++)
+            free(mat1[i]);
+        free(mat1);
+    }
+    if(mat2)
+    {
+        for(int i=0; i<m2; i++)
+            free(mat2[i]);
+        free(mat2);
+    }
+    
+    matrix_mult(io, omat1, omat2, m1, n2, n1);
+
+    log_info("END\n");
+    
+    for(int i=0; i<m1; i++)
+        free(omat1[i]);
+    for(int i=0; i<m2; i++)
+        free(omat2[i]);
+    free(omat1);
+    free(omat2);
+}
