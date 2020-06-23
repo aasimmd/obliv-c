@@ -35,6 +35,9 @@ int main(int argc, char *argv[])
 
     party_id = (argv[2][0]=='1'? 1 : 2);
     setCurrentParty(&pd, party_id); // only checks for a '1'
+    scanf("%d", &(io.cordic_iterations));
+    if(io.cordic_iterations > MAXCORDIC)
+        exit(1);
     scanf("%f", &(io.val));
     // printf("%f \n", io.val);
 

@@ -1,0 +1,25 @@
+Sigmoid in oblivc, cordic.
+Errors were calculated over 10 samples
+Avg time for calcuation per sample : 0.63s
+That time is inclusive of all overhead operations (thread locks too)
+
+Iterations:13 Mean:0 Stdev:0.5             Error:0.0015775587833628119
+Iterations:9 Mean:0 Stdev:0.5             Error:0.001035311009455871
+Iterations:5 Mean:0 Stdev:0.5             Error:6.295776252181122e-05
+Iterations:2 Mean:0 Stdev:0.5             Error:0.002033974436474562
+Iterations:1 Mean:0 Stdev:0.5             Error:0.009637207606412922
+Iterations:8 Mean:0 Stdev:0.75             Error:0.005173937674789803
+Iterations:3 Mean:0 Stdev:0.75             Error:0.0010012100827542594
+Iterations:8 Mean:0 Stdev:1.0             Error:0.010468006891822807
+Iterations:3 Mean:0 Stdev:1.0             Error:0.017946219795930626
+Iterations:8 Mean:0 Stdev:2.0             Error:0.03725894158505957
+Iterations:8 Mean:0 Stdev:3.0             Error:0.021620619775190364
+Iterations:8 Mean:0 Stdev:5.0             Error:0.05572651425836993
+Iterations:3 Mean:0 Stdev:5.0             Error:0.06112925304118046
+Iterations:3 Mean:0 Stdev:10.0             Error:0.06783562723258699
+Iterations:3 Mean:0 Stdev:100.0             Error:0.07114688270753425
+Iterations:1 Mean:0 Stdev:100.0             Error:0.1339743006249221
+Iterations:1 Mean:40 Stdev:100.0             Error:0.13397365707117076
+Iterations:1 Mean:-40 Stdev:100.0             Error:0.13397425015056869
+Iterations:13 Mean:-40 Stdev:100.0             Error:0.0636479558504554
+Iterations:13 Mean:-100 Stdev:1.0             Error:0.0636805225

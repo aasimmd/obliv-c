@@ -4,12 +4,16 @@ import logging
 import random
 import time
 import math
+import tqdm
 
 
 # Utility variables
-MEAN = 0
-STDEV = 0.5
+MEAN = -100
+STDEV = 1.0
 RANDOM_SPEC = (MEAN, STDEV)
+NO_OF_LOOPS = 10
+CORDIC_ITERATIONS = 13
+CICLEAN = str(CORDIC_ITERATIONS)
 
 # Global threading utils
 # This lock is to ensure ordered output
@@ -30,11 +34,12 @@ def server(stdinput, result_holder):
     # Prepare stdinput in stages
     # Convert to str and encode
     stdinput = str(stdinput)
-    logging.info("Server input %s", stdinput)
-    logging.info("Server starting")
-    stdinput = stdinput.encode()
+    # logging.info("Server input %s", stdinput)
+    # logging.info("Server starting")
+    stdinput = (CICLEAN+" "+stdinput).encode()
 
     # communicate is a blocking function
+    # pass in cordic iterations first
     stdoutput, stderror = proc.communicate(stdinput)
     
     # Acquire locks
@@ -59,11 +64,12 @@ def client(stdinput, result_holder):
     # Prepare stdinput in stages
     # Convert to str and encode
     stdinput = str(stdinput)
-    logging.info("Client input %s", stdinput)
-    logging.info("Client starting")
-    stdinput = stdinput.encode()
+    # logging.info("Client input %s", stdinput)
+    # logging.info("Client starting")
+    stdinput = (CICLEAN+" "+stdinput).encode()
 
     # communicate is a blocking function
+    # pass in cordic iterations first
     stdoutput, stderror = proc.communicate(stdinput)
     
     # Acquire locks
@@ -93,10 +99,11 @@ def output_cleaner(output):
 
 
 def sigmoid(z):
+    print(z)
     return 1/(1+math.exp(-z))
 
 
-def main():
+def test():
     server_input = input_prep()
     client_input = input_prep()
 
@@ -123,9 +130,33 @@ def main():
 
     # print(server_input, client_input)
     sigmoid_in = server_input + client_input
-    print("true output", sigmoid(sigmoid_in))
-    print("server:", server_out)
-    print("client:", client_out)
+    # print("true output", sigmoid(sigmoid_in))
+    # print("server:", server_out)
+    # print("client:", client_out)
+    assert server_out == client_out
+
+    true_val = sigmoid(sigmoid_in)
+    cordic_val = server_out
+    return true_val-cordic_val
+
+
+def main():
+    print("Testing for cordic-iterations:", CORDIC_ITERATIONS)
+    errors = []
+    for _ in tqdm.trange(NO_OF_LOOPS):
+        error = test()
+        errors.append(error)
+    
+    # Calculate MSE of errors
+    squared_errors = [error**2 for error in errors]
+    mean_squared_error = sum(squared_errors)/len(squared_errors)
+    print("Error(mean-squared):", mean_squared_error)
+
+    # Also record them in a log file
+    with open("cordic-eval.log", "a") as wire:
+        write_string = f"Iterations:{CORDIC_ITERATIONS} Mean:{MEAN} Stdev:{STDEV}\
+             Error:{mean_squared_error}\n"
+        wire.writelines(write_string)
 
 
 if __name__ == "__main__":
