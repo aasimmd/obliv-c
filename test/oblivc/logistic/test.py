@@ -18,6 +18,7 @@ CICLEAN = str(CORDIC_ITERATIONS)
 # Global threading utils
 # This lock is to ensure ordered output
 PRINT_LOCK = threading.Lock()
+# This lock is to ensure client does not run before server
 RUN_LOCK = threading.Lock()
 
 
