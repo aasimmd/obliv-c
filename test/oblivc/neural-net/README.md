@@ -1,6 +1,14 @@
 ## Neural network feed forward
 The weights and the structure of the model is in weights.dat  
 The input data is in inputs.dat
+Make standalone neural-network as
+```
+gcc -Wall ogneural.c -o neuralnet
+```
+and run
+```
+./neuralnet
+```
 
 ### Structure of weights
 l -> No of layers  

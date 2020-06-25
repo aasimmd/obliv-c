@@ -1,48 +1,65 @@
 #include<stdio.h>
-#include<stdlib.h>
+#include<obliv.h>
 
+#include "neural.h"
 
-void read_weights(char *filename, float ****weights, float ***biases, int ***shapes, int *no_layers);
-void read_inputs(char *filename, float ***inputs, int *input_shape, int *no_inputs);
-void matmul(float **mat1, float **mat2, float ***op, int m1, int n1, int m2, int n2);
-void add_bias(float **output, float *bias, int no_outputs, int len);
-void feedforward(float **inputs, float ***weights, float **biases, int **shapes, int no_layers, int no_inputs, int input_shape, float ***outputs);
-
-int main()
+int main(int argc, char *argv[])
 {
-	float ***weights, **biases, **inputs, **outputs;
-	int no_layers, **shapes, no_inputs, input_shape;
-	read_weights("weights.dat", &weights, &biases, &shapes, &no_layers);
-	read_inputs("inputs.dat", &inputs, &input_shape, &no_inputs);
-	printf("All data fetched\n");
+    ProtocolDesc pd;
+    protocolIO io;
 
-	// Print out inputs for prettiness
-	// printf("n:%d\n",no_inputs);
-	// printf("l:%d\n",no_layers);
-	printf("Input vector shape: %d & %d\n", no_inputs, input_shape);
-	printf("Layer shapes:\n");
-	for(int i=0; i<no_layers; i++)
-		printf("%d,%d ",shapes[i][0], shapes[i][1]);
-	putchar('\n');
+    if(argc==3)
+    {
+        const char *remote_host = strtok(argv[1], ":");
+        const char *port = strtok(NULL, ":");
 
-	// Perform feed forward
-	feedforward(inputs, weights, biases, shapes, no_layers, no_inputs, input_shape, &outputs);
-	
+        // Make connection between two shells
+        // Modified ocTestUtilTcpOrDie() function from obliv-c/test/oblivc/common/util.c
+        if(argv[2][0] == '1') {
+            if(protocolAcceptTcp2P(&pd,port)!=0) {
+                printf("TCP accept from %s failed\n", remote_host);
+                exit(1);
+            }
+        } else {
+            if(protocolConnectTcp2P(&pd,remote_host,port)!=0) {
+                printf("TCP connect to %s failed\n", remote_host);
+                exit(1);
+            }
+        }
+    }
+    else
+    {
+        printf("Incorrect usage\n");
+        exit(1);
+    }
+    printf("Connection passed\n");
 
-	printf("Output shape: %d & %d\n", no_inputs, shapes[no_layers-1][1]);
-	printf("Output vector:\n");
-	for(int x=0; x<no_inputs; x++)
-	{
-		for(int y=0; y<shapes[no_layers-1][1]; y++)
-		{
-			printf("%f ", outputs[x][y]);
-		}
-		putchar('\n');
-	}
-	return 0;
+    party_id = (argv[2][0]=='1'? 1 : 2);
+    setCurrentParty(&pd, party_id); // only checks for a '1'
+
+    printf("Starting protocol execution\n");
+    execYaoProtocol(&pd, neuralnet, &io);
+    cleanupProtocol(&pd);
+
+    // explore the results
+    int ox, oy;
+    ox = io.no_inputs;
+    oy = io.output_shape;
+    printf("Received output of shape: %d & %d\n", ox, oy);
+    printf("Outputs:\n");
+    for(int x=0; x<ox; x++)
+    {
+        for(int y=0; y<oy; y++)
+        {
+            printf("%f ", io.outputs[x][y]);
+        }
+        putchar('\n');
+    }
+
+    return 0;
 }
 
-void read_weights(char *filename, float ****weights, float ***biases, int ***shapes, int *no_layers)
+void read_weights(const char *filename, float ****weights, float ***biases, int ***shapes, int *no_layers)
 {
 	FILE *fptr = fopen(filename, "r");
 	fscanf(fptr, "%d", no_layers);
@@ -76,7 +93,7 @@ void read_weights(char *filename, float ****weights, float ***biases, int ***sha
 	fclose(fptr);
 }
 
-void read_inputs(char *filename, float ***inputs, int *input_shape, int *no_inputs)
+void read_inputs(const char *filename, float ***inputs, int *input_shape, int *no_inputs)
 {
 	FILE *fptr = fopen("inputs.dat", "r");
 
@@ -97,64 +114,4 @@ void read_inputs(char *filename, float ***inputs, int *input_shape, int *no_inpu
 	}
 
 	fclose(fptr);
-}
-
-void matmul(float **mat1, float **mat2, float ***op, int m1, int n1, int m2, int n2)
-{
-	// Multiply the matrices and store it in output
-	// Output is uninitialzed, allocate memory accordingly
-	
-	// Create a temporary array so that the call can be used as matmul(x, op, op);
-	*op = calloc(m1, sizeof **op);
-	for(int x=0; x<m1; x++)
-		(*op)[x] = calloc(n2, sizeof *((*op)[x]));
-
-	float tmpsum;
-	for(int x=0; x<m1; x++)
-	{
-		for(int y=0; y<n2; y++)
-		{
-			tmpsum = 0;
-			for(int z=0; z<n1; z++)
-				tmpsum += mat1[x][z]*mat2[z][y];
-			(*op)[x][y] = tmpsum;
-		}
-	}
-}
-
-void add_bias(float **output, float *bias, int no_outputs, int len)
-{
-	for(int x=0; x<no_outputs; x++)
-	{
-		for(int y=0; y<len; y++)
-			output[x][y] += bias[y];
-	}
-}
-
-void feedforward(float **inputs, float ***weights, float **biases, int **shapes, int no_layers, int no_inputs, int input_shape, float ***outputs)
-{
-	// inputs will be freed and realloced here, make sure it is a dynamic array
-	int opx, opy;
-	for(int l=0; l<no_layers; l++)
-	{
-		matmul(inputs, weights[l], outputs, no_inputs, input_shape, shapes[l][0], shapes[l][1]);
-		opx = no_inputs;
-		opy = shapes[l][1];
-		input_shape = opy;
-		add_bias(*outputs, biases[l], opx, opy);
-		printf("Layer %d done\n", l+1);
-		
-		// Free and realloc inputs
-		for(int x=0; x<no_inputs; x++)
-			free(inputs[x]);
-		free(inputs);
-		inputs = calloc(opx, sizeof *inputs);
-		for(int x=0; x<opx; x++)
-		{
-			inputs[x] = calloc(opy, sizeof *inputs[x]); 
-			for(int y=0; y<opy; y++)
-				inputs[x][y] = (*outputs)[x][y];
-		}
-		// printf("Successfully transferred %d\n", l+1);
-	}
 }
