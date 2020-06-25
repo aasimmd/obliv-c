@@ -5,6 +5,8 @@
 void read_weights(char *filename, float ****weights, float ***biases, int ***shapes, int *no_layers);
 void read_inputs(char *filename, float ***inputs, int *input_shape, int *no_inputs);
 void matmul(float **mat1, float **mat2, float ***op, int m1, int n1, int m2, int n2);
+void add_bias(float **output, float *bias, int no_outputs, int len);
+void feedforward(float **inputs, float ***weights, float **biases, int **shapes, int no_layers, int no_inputs, int input_shape, float ***outputs);
 
 int main()
 {
@@ -24,34 +26,14 @@ int main()
 	putchar('\n');
 
 	// Perform feed forward
-	int opx, opy;
-	for(int l=0; l<no_layers; l++)
-	{
-		matmul(inputs, weights[l], &outputs, no_inputs, input_shape, shapes[l][0], shapes[l][1]);
-		opx = no_inputs;
-		opy = shapes[l][1];
-		input_shape = opy;
-		printf("Layer %d done\n", l+1);
-		
-		// Free and realloc inputs
-		for(int x=0; x<no_inputs; x++)
-			free(inputs[x]);
-		free(inputs);
-		inputs = calloc(opx, sizeof *inputs);
-		for(int x=0; x<opx; x++)
-		{
-			inputs[x] = calloc(opy, sizeof *inputs[x]); 
-			for(int y=0; y<opy; y++)
-				inputs[x][y] = outputs[x][y];
-		}
-		// printf("Successfully transferred %d\n", l+1);
-	}
+	feedforward(inputs, weights, biases, shapes, no_layers, no_inputs, input_shape, &outputs);
+	
 
-	printf("Output shape: %d & %d\n", no_inputs, input_shape);
+	printf("Output shape: %d & %d\n", no_inputs, shapes[no_layers-1][1]);
 	printf("Output vector:\n");
 	for(int x=0; x<no_inputs; x++)
 	{
-		for(int y=0; y<input_shape; y++)
+		for(int y=0; y<shapes[no_layers-1][1]; y++)
 		{
 			printf("%f ", outputs[x][y]);
 		}
@@ -137,5 +119,42 @@ void matmul(float **mat1, float **mat2, float ***op, int m1, int n1, int m2, int
 				tmpsum += mat1[x][z]*mat2[z][y];
 			(*op)[x][y] = tmpsum;
 		}
+	}
+}
+
+void add_bias(float **output, float *bias, int no_outputs, int len)
+{
+	for(int x=0; x<no_outputs; x++)
+	{
+		for(int y=0; y<len; y++)
+			output[x][y] += bias[y];
+	}
+}
+
+void feedforward(float **inputs, float ***weights, float **biases, int **shapes, int no_layers, int no_inputs, int input_shape, float ***outputs)
+{
+	// inputs will be freed and realloced here, make sure it is a dynamic array
+	int opx, opy;
+	for(int l=0; l<no_layers; l++)
+	{
+		matmul(inputs, weights[l], outputs, no_inputs, input_shape, shapes[l][0], shapes[l][1]);
+		opx = no_inputs;
+		opy = shapes[l][1];
+		input_shape = opy;
+		add_bias(*outputs, biases[l], opx, opy);
+		printf("Layer %d done\n", l+1);
+		
+		// Free and realloc inputs
+		for(int x=0; x<no_inputs; x++)
+			free(inputs[x]);
+		free(inputs);
+		inputs = calloc(opx, sizeof *inputs);
+		for(int x=0; x<opx; x++)
+		{
+			inputs[x] = calloc(opy, sizeof *inputs[x]); 
+			for(int y=0; y<opy; y++)
+				inputs[x][y] = (*outputs)[x][y];
+		}
+		// printf("Successfully transferred %d\n", l+1);
 	}
 }
