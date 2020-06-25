@@ -37,6 +37,17 @@ void toObliv1D(protocolIO *io, int party, obliv float *dest, float *src, int n)
   }
 }
 
+// activation functions
+void relu(obliv float input, obliv float *output)
+{
+  obliv if(input > 0) {
+    *output = input;
+  }
+  else {
+    *output = 0;
+  }
+}
+
 void matmul(obliv float **mat1, obliv float **mat2, obliv float ***op, int m1, int n1, int m2, int n2)
 {
 	// Multiply the matrices and store it in output
@@ -69,7 +80,7 @@ void add_bias(obliv float **output, obliv float *bias, int no_outputs, int len)
 	}
 }
 
-void feedforward(obliv float **inputs, obliv float ***weights, obliv float **biases, int **shapes, int no_layers, int no_inputs, int input_shape, obliv float ***outputs)
+void feedforward(obliv float **inputs, obliv float ***weights, obliv float **biases, int **shapes, int no_layers, int no_inputs, int input_shape, obliv float ***outputs, int *activations)
 {
 	// inputs will be freed and realloced here, make sure it is a dynamic array
 	int opx, opy;
@@ -93,6 +104,19 @@ void feedforward(obliv float **inputs, obliv float ***weights, obliv float **bia
 			for(int y=0; y<opy; y++)
 				inputs[x][y] = (*outputs)[x][y];
 		}
+
+    // check which activtation function
+    if(activations[l] == 1)
+    {
+      for(int x=0; x<opx; x++)
+      {
+        for(int y=0; y<opy; y++)
+        {
+          relu((*outputs)[x][y], &((*outputs)[x][y]));
+        }
+      }
+    }
+    
 		// printf("Successfully transferred %d\n", l+1);
 	}
 }
@@ -105,10 +129,12 @@ void neuralnet(void *args)
   // variables not owned will have garbage
   float ***weights, **biases, **inputs;
 
+  int *activations = NULL;
+
   // fetch data
   if(ocCurrentParty()==1)
   {
-    read_weights(weights_file, &weights, &biases, &(io->shapes), &(io->no_layers));
+    read_weights(weights_file, &weights, &biases, &(io->shapes), &(io->no_layers), &(io->activations));
   }
   else
   {
@@ -125,6 +151,17 @@ void neuralnet(void *args)
 
   input_shape = ocBroadcastInt(io->input_shape, 2);
   no_inputs = ocBroadcastInt(io->no_inputs, 2);
+  
+  if(!io->activations)
+    io->activations = malloc((sizeof *(io->activations)) * no_layers);
+  if(!activations)
+    activations = malloc((sizeof *activations) * no_layers);
+  for(int x=0; x<no_layers; x++)
+    activations[x] = ocBroadcastInt(io->activations[x], 1);
+  
+  // for(int y=0; y<no_layers; y++)
+  //   printf("%d ", activations[y]);
+  // putchar('\n');
 
   if(!io->shapes)
   {
@@ -212,7 +249,7 @@ void neuralnet(void *args)
 
   // perform feed-forward and reveal results
   obliv float **outputs;
-  feedforward(oinputs, oweights, obiases, shapes, no_layers, no_inputs, input_shape, &outputs);
+  feedforward(oinputs, oweights, obiases, shapes, no_layers, no_inputs, input_shape, &outputs, activations);
 
   int out_x = no_inputs, out_y = shapes[no_layers-1][1];
 

@@ -59,13 +59,14 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-void read_weights(const char *filename, float ****weights, float ***biases, int ***shapes, int *no_layers)
+void read_weights(const char *filename, float ****weights, float ***biases, int ***shapes, int *no_layers, int **activations)
 {
 	FILE *fptr = fopen(filename, "r");
 	fscanf(fptr, "%d", no_layers);
 	*shapes = calloc(*no_layers, sizeof **shapes);
 	*weights = calloc(*no_layers, sizeof **weights);
 	*biases = calloc(*no_layers, sizeof **biases);
+    *activations = calloc(*no_layers, sizeof **activations);
 	for(int l=0; l<*no_layers; l++)
 	{
 		int m,n;
@@ -89,6 +90,9 @@ void read_weights(const char *filename, float ****weights, float ***biases, int 
 		}
 		for(int x=0; x<n; x++)
 			fscanf(fptr, "%f", &(*biases)[l][x]);
+        
+        // read the activation function
+        fscanf(fptr, "%d", &((*activations)[l]));
 	}
 	fclose(fptr);
 }
