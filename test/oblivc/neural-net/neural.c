@@ -99,7 +99,7 @@ void read_weights(const char *filename, float ****weights, float ***biases, int 
 
 void read_inputs(const char *filename, float ***inputs, int *input_shape, int *no_inputs)
 {
-	FILE *fptr = fopen("inputs.dat", "r");
+	FILE *fptr = fopen(filename, "r");
 
 	// read dimensions
 	fscanf(fptr, "%d %d", no_inputs, input_shape);
