@@ -34,7 +34,8 @@ for _ in range(no_outputs):
     row = clean_output[:output_shape]
     outputs.append(row)
     clean_output = clean_output[output_shape:]
-# print(outputs)
+print(outputs)
+exit(0)
 
 classes = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 probabilities = []
