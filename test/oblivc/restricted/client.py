@@ -3,6 +3,10 @@ import time
 import math
 
 
+MNIST = 1
+ISOLET = 2
+nntype = MNIST
+
 proc = subprocess.Popen(['./a.out', 'localhost:8080', '2'],
 stdin=subprocess.PIPE,
 stdout=subprocess.PIPE
@@ -35,9 +39,12 @@ for _ in range(no_outputs):
     outputs.append(row)
     clean_output = clean_output[output_shape:]
 print(outputs)
-exit(0)
 
-classes = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+if nntype == ISOLET:
+    classes = ["UNK", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p",
+            "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
+elif nntype == MNIST:
+    classes = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 probabilities = []
 true_results = [5, 0, -1, -1, -1]
 for index, prediction in enumerate(outputs):

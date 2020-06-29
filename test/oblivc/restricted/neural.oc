@@ -155,7 +155,7 @@ void matmul(obliv float **mat1, obliv float **mat2, obliv float ***op, int m1, i
 	// Multiply the matrices and store it in output
 	// Output is uninitialzed, allocate memory accordingly
 	
-	// Create a temporary array so that the call can be used as matmul(x, op, op);
+	// Create a temporary matrix so that the call can be used as matmul(x, op, op);
 	*op = malloc((sizeof **op) * m1);
 	for(int x=0; x<m1; x++)
 		(*op)[x] = calloc(n2, sizeof *((*op)[x]));
@@ -169,7 +169,9 @@ void matmul(obliv float **mat1, obliv float **mat2, obliv float ***op, int m1, i
         printf("Evaluating %d out of %d for %d\n", y, n2, x);
 			tmpsum = 0;
 			for(int z=0; z<n1; z++)
-				tmpsum += mat1[x][z]*mat2[z][y];
+			{
+        tmpsum += mat1[x][z]*mat2[z][y];
+      }
 			(*op)[x][y] = tmpsum;
 		}
 	}
