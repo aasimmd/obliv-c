@@ -1,0 +1,47 @@
+#include<obliv.oh>
+#include "addtest.h"
+#include<time.h>
+
+void iteradder(void* args)
+{
+  protocolIO *io=args;
+  obliv float v1,v2;
+  
+  v1 = feedOblivFloat(io->val,1);
+  v2 = feedOblivFloat(io->val,2);
+  // printf("Current user's value: %d\n", io->val);
+
+  obliv float *result = malloc(sizeof(*result)*ITERATIONS);
+
+  clock_t begin = clock();
+  for(int i=0; i<ITERATIONS; i++)
+    result[i] = (v1 + v2);
+  clock_t end = clock();
+
+  revealOblivFloat(&(io->result), result[0], 0);
+  double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+  printf("Time: %lf s\n", time_spent);
+  free(result);
+}
+
+void intiteradder(void* args)
+{
+  protocolIO *io=args;
+  obliv int v1,v2;
+  
+  v1 = feedOblivInt(io->ival,1);
+  v2 = feedOblivInt(io->ival,2);
+  // printf("Current user's value: %d\n", io->val);
+
+  obliv int *result = malloc(sizeof(*result)*ITERATIONS);
+
+  clock_t begin = clock();
+  for(int i=0; i<ITERATIONS; i++)
+    result[i] = (v1 + v2);
+  clock_t end = clock();
+
+  revealOblivInt(&(io->iresult), result[0], 0);
+  double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+  printf("Time: %lf s\n", time_spent);
+  free(result);
+}

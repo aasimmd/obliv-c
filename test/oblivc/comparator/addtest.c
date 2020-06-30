@@ -1,7 +1,8 @@
 #include<stdio.h>
 #include<obliv.h>
+#include<time.h>
 
-#include "neural.h"
+#include "addtest.h"
 
 int main(int argc, char *argv[])
 {
@@ -35,20 +36,16 @@ int main(int argc, char *argv[])
 
     party_id = (argv[2][0]=='1'? 1 : 2);
     setCurrentParty(&pd, party_id); // only checks for a '1'
-    scanf("%d", &(io.val));
+    scanf("%d", &(io.ival));
+    // scanf("%f", &(io.val));
 
-    execYaoProtocol(&pd, comparator, &io);
+    execYaoProtocol(&pd, intiteradder, &io);
+    // execYaoProtocol(&pd, iteradder, &io);
     cleanupProtocol(&pd);
 
-    //print result
-    printf("%d", io.compared);
-    // if(io.compared == -1)
-    //     printf("client is greater\n");
-    // else if(io.compared == 1)
-    //     printf("server is greater\n");
-    // else
-    //     printf("They are equal\n");
 
-    
+    //print result
+    printf("%ld\n", io.iresult);
+    // printf("%f\n", io.result);
     return 0;
 }

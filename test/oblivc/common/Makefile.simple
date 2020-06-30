@@ -1,4 +1,4 @@
-$(if $(testName),,$(error 'testName' must be defined before Makefile.simple is used))
+testname=addtest
 CILPATH=../../../
 REMOTE_HOST=localhost
 CFLAGS += -DREMOTE_HOST=$(REMOTE_HOST) -O3
