@@ -1,0 +1,18 @@
+#include<obliv.oh>
+#include "add.h"
+
+void adder(void* args)
+{
+  protocolIO *io=args;
+  obliv int v1,v2;
+  // int sumf;
+  
+  v1 = feedOblivInt(io->val,1);
+  v2 = feedOblivInt(io->val,1);
+  obliv int *res = malloc(sizeof(*res)*ITERATIONS);
+
+  // printf("Current user's value: %d\n", io->val);
+  for(int i=0; i<ITERATIONS; i++)
+    res[i] = v1+v2;
+  revealOblivInt(&(io->sum),res[0],0);
+}
