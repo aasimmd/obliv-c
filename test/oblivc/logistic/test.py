@@ -8,8 +8,8 @@ import tqdm
 
 
 # Utility variables
-MEAN = -100
-STDEV = 1.0
+MEAN = 0
+STDEV = 2.0
 RANDOM_SPEC = (MEAN, STDEV)
 NO_OF_LOOPS = 10
 CORDIC_ITERATIONS = 13
@@ -42,7 +42,7 @@ def server(stdinput, result_holder):
     # communicate is a blocking function
     # pass in cordic iterations first
     stdoutput, stderror = proc.communicate(stdinput)
-    
+
     # Acquire locks
     with PRINT_LOCK:
         result_holder["server"] = stdoutput.decode().strip()
@@ -72,7 +72,7 @@ def client(stdinput, result_holder):
     # communicate is a blocking function
     # pass in cordic iterations first
     stdoutput, stderror = proc.communicate(stdinput)
-    
+
     # Acquire locks
     with PRINT_LOCK:
         # logging.info("Client output")
@@ -100,7 +100,7 @@ def output_cleaner(output):
 
 
 def sigmoid(z):
-    print(z)
+    # print(z)
     return 1/(1+math.exp(-z))
 
 
@@ -138,7 +138,7 @@ def test():
 
     true_val = sigmoid(sigmoid_in)
     cordic_val = server_out
-    return true_val-cordic_val
+    return (true_val-cordic_val)/true_val
 
 
 def main():
@@ -147,7 +147,7 @@ def main():
     for _ in tqdm.trange(NO_OF_LOOPS):
         error = test()
         errors.append(error)
-    
+
     # Calculate MSE of errors
     squared_errors = [error**2 for error in errors]
     mean_squared_error = sum(squared_errors)/len(squared_errors)

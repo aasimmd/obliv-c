@@ -156,9 +156,9 @@ void matmul(obliv float **mat1, obliv float **mat2, obliv float ***op, int m1, i
 	// Output is uninitialzed, allocate memory accordingly
 	
 	// Create a temporary matrix so that the call can be used as matmul(x, op, op);
-	*op = malloc((sizeof **op) * m1);
-	for(int x=0; x<m1; x++)
-		(*op)[x] = calloc(n2, sizeof *((*op)[x]));
+  *op = malloc((sizeof **op) * m1);
+  for(int x=0; x<m1; x++)
+    (*op)[x] = calloc(n2, sizeof *((*op)[x]));
 
 	obliv float tmpsum;
 	for(int x=0; x<m1; x++)
@@ -401,4 +401,41 @@ void neuralnet(void *args)
   io->no_inputs = out_x;
 
   // free-up memory
+  for(int l=0; l<no_layers; l++)
+  {
+    for(int y=0; y<shapes[l][0]; y++)
+      free(weights[l][y]);
+    free(weights[l]);
+  }
+  free(weights);
+
+  for(int l=0; l<no_layers; l++)
+    free(biases[l]);
+  free(biases);
+
+  for(int x=0; x<no_inputs; x++)
+    free(inputs[x]);
+  free(inputs);
+
+  free(activations);
+
+  for(int x=0; x<no_layers; x++)
+    free(shapes[x]);
+  free(shapes);
+
+  for(int l=0; l<no_layers; l++)
+  {
+    for(int y=0; y<shapes[l][0]; y++)
+      free(oweights[l][y]);
+    free(oweights[l]);
+  }
+  free(oweights);
+
+  for(int l=0; l<no_layers; l++)
+    free(obiases[l]);
+  free(obiases);
+
+  // for(int x=0; x<no_inputs; x++)
+  //   free(oinputs[x]);
+  // free(oinputs);
 }

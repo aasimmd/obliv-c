@@ -53,8 +53,14 @@ int main(int argc, char *argv[])
         {
             printf("%f ", io.outputs[x][y]);
         }
+        free(io.outputs[x]);
         putchar('\n');
     }
+    free(io.outputs);
+    for(int x=0; x<io.no_layers; x++)
+        free(io.shapes[x]);
+    free(io.shapes);
+    free(io.activations);
 
     return 0;
 }

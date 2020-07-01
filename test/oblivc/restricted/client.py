@@ -26,7 +26,7 @@ if not stderr:
 print("time taken:", end-start, "s")
 
 clean_output = stdout.decode().strip().split()
-# print(clean_output)
+print(clean_output)
 
 no_outputs = int(clean_output[0])
 output_shape = int(clean_output[1])
@@ -38,7 +38,7 @@ for _ in range(no_outputs):
     row = clean_output[:output_shape]
     outputs.append(row)
     clean_output = clean_output[output_shape:]
-print(outputs)
+# print(outputs)
 
 if nntype == ISOLET:
     classes = ["UNK", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p",
@@ -46,14 +46,24 @@ if nntype == ISOLET:
 elif nntype == MNIST:
     classes = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 probabilities = []
-true_results = [5, 0, -1, -1, -1]
+true_results = [5, 0, 4, 1, 9, 2, 1, 3, 1, 4, 3, 5, 3, 6, 1, 7, 2, 8, 6, 9, 4, 0,
+       9, 1, 3, 2, 4, 3, 2, 8, 3, 8, 6, 9, 0, 5, 6, 0, 7, 6, 1, 8, 7, 9,
+       3, 9, 8, 5, 9, 3]
+argmax = lambda x: x.index(max(x))
+metrics = []
 for index, prediction in enumerate(outputs):
-    print("Prediction for input", index+1)
+    # print("Prediction for input", index+1)
     sfsum = sum(map(math.exp, prediction))
     probs = [math.exp(x)/sfsum for x in prediction]
     # print(probs)
     probabilities.append(probs)
 
-    for x, y in zip(probs, classes):
-        print(y, ":", x)
+    # for x, y in zip(probs, classes):
+    #     print(y, ":", x)
+    pred_index = argmax(probs)
     print("True result:", true_results[index])
+    print("Predicted result:", pred_index)
+    metrics.append(pred_index == true_results[index])
+
+accuracy = sum(metrics)/len(metrics) * 100.0
+print("Accuracy:",accuracy)
