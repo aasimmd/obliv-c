@@ -423,17 +423,17 @@ void neuralnet(void *args)
     free(shapes[x]);
   free(shapes);
 
-  for(int l=0; l<no_layers; l++)
-  {
-    for(int y=0; y<shapes[l][0]; y++)
-      free(oweights[l][y]);
-    free(oweights[l]);
-  }
-  free(oweights);
+  // for(int l=0; l<no_layers; l++)
+  // {
+  //   for(int y=0; y<shapes[l][0]; y++)
+  //     free(oweights[l][y]);
+  //   free(oweights[l]);
+  // }
+  // free(oweights);
 
-  for(int l=0; l<no_layers; l++)
-    free(obiases[l]);
-  free(obiases);
+  // for(int l=0; l<no_layers; l++)
+  //   free(obiases[l]);
+  // free(obiases);
 
   // for(int x=0; x<no_inputs; x++)
   //   free(oinputs[x]);
