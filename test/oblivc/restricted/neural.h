@@ -11,6 +11,7 @@ int party_id;
 // none - 0
 // relu - 1
 // sigmoid - 2
+// tanh - 3
 
 typedef struct {
     // common information prior computation

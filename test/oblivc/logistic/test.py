@@ -8,8 +8,8 @@ import tqdm
 
 
 # Utility variables
-MEAN = 0
-STDEV = 2.0
+MEAN = 10
+STDEV = 200
 RANDOM_SPEC = (MEAN, STDEV)
 NO_OF_LOOPS = 10
 CORDIC_ITERATIONS = 13
@@ -143,6 +143,7 @@ def test():
 
 def main():
     print("Testing for cordic-iterations:", CORDIC_ITERATIONS)
+    print(f"MEAN:{MEAN}, STANDARD DEVIATION:{STDEV}")
     errors = []
     for _ in tqdm.trange(NO_OF_LOOPS):
         error = test()

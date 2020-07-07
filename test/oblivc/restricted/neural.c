@@ -56,6 +56,8 @@ int main(int argc, char *argv[])
         free(io.outputs[x]);
         putchar('\n');
     }
+    // for(int x=0; x<ox; x++)
+    //     free(io.outputs[x]);
     free(io.outputs);
     for(int x=0; x<io.no_layers; x++)
         free(io.shapes[x]);

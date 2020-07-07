@@ -50,53 +50,43 @@ void relu(obliv float input, obliv float *output)
 
 void sigmoid(obliv float z, obliv float *result)
 {
-  // constants required for cordic
-  float inv2pws[] = {0.5, 0.25, 0.125, 0.0625, 0.03125, 0.015625, 0.0078125,\
-	       	0.00390625, 0.001953125, 0.0009765625, 0.00048828125, 0.000244140625, 0.0001220703125};
-	float tanangs[] = {0.5493061, 0.2554128, 0.1256572, 0.0625816, 0.0312602, \
-		0.0156263, 0.0078127, 0.0039063, 0.0019531, 0.0009766, 0.0004883, 0.0002441, 0.0001221};
-	float atable[] = {0.866025404, 0.838525492, 0.831948719, 0.83032223, 0.8299167, 0.829815386, \
-		0.829790061, 0.82978373, 0.829782148, 0.829781752, 0.829781653, 0.829781628, 0.829781622};
-	int len = CORDIC_ITERATIONS;
-  obliv float d;
-  obliv float x = 1, y = 0, x_, y_, z_;
-  
-  z = -z;
-  
-  for(int i=0; i<len; i++)
-  {
-    obliv if(z < 0)
-      d = -1;
-    else
-      d = 1;
-
-    x_ = x + y*d*inv2pws[i];
-		y_ = y + x*d*inv2pws[i];
-		z_ = z - d*tanangs[i];
-		x = x_;
-		y = y_;
-		z = z_;
-
-    // extra iterations at 3i+1 for convergence
-		if(i==4 || i==13 || i==40)
-		{
-			obliv if(z < 0)
-        d = -1;
-      else
-        d = 1;
-			x_ = x + y*d*inv2pws[i];
-			y_ = y + x*d*inv2pws[i];
-			z_ = z - d*tanangs[i];
-			x = x_;
-			y = y_;
-			z = z_;
-		}
+  // piecewise linear
+  obliv float modz, tmp;
+  float vals[] = {0.03125, 0.125, 0.25, 0.625, 0.84375};
+  obliv if(z > 0) {
+    modz = modz;
+  } else {
+    modz = -1 * z;
   }
-  // Normalize x and y
-	x = (x/atable[len-1]);
-	y = (y/atable[len-1]);
+  modz = modz * 1000;
 
-  *result = 1/(1+x+y);
+  obliv if(modz >= 5000) {
+    tmp = 1;
+  } 
+  obliv if(modz >= 2375) {
+    obliv if(modz < 5000)
+    {
+      tmp = vals[0] * modz/1000 + vals[4];
+    }
+  }
+  obliv if((modz >= 1000)) {
+    obliv if(modz < 2375)
+    {
+      tmp = vals[1] * modz/1000 + vals[3];
+    }
+  } 
+  obliv if((modz >= 0)) {
+    obliv if(modz < 1000)
+    {
+      tmp = vals[2] * modz/1000 + vals[2];
+    }
+  }
+
+  obliv if(z < 0){
+    tmp = 1 - tmp;
+  }
+
+  *result = tmp;
 }
 
 void activation_tanh(obliv float z, obliv float *result)
@@ -163,10 +153,12 @@ void matmul(obliv float **mat1, obliv float **mat2, obliv float ***op, int m1, i
 	obliv float tmpsum;
 	for(int x=0; x<m1; x++)
 	{
+    if(party == 1)
+      printf("evaluating input no: %d\n", x);
 		for(int y=0; y<n2; y++)
 		{
-      if(party == 1)
-        printf("Evaluating %d out of %d for %d\n", y, n2, x);
+      // if(party == 1)
+      //   printf("Evaluating %d out of %d for %d\n", y, n2, x);
 			tmpsum = 0;
 			for(int z=0; z<n1; z++)
 			{
@@ -361,6 +353,9 @@ void neuralnet(void *args)
       oweights[x][y] = malloc((sizeof *(oweights[x][y])) * shapes[x][1]);
   }
   // oweights[0][4][0] = oweights[0][0][0];
+  // printf("Shapes are:\n");
+  // for(int i=0; i<no_layers; i++)
+  //   printf("%d %d\n", shapes[i][0], shapes[i][1]);
   
   // printf("Allocated space for oblivious structures\n");
 
