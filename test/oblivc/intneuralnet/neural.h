@@ -4,8 +4,8 @@
 // server provides the weights
 int party_id;
 
-#define weights_file "mnist_weights.dat"
-#define inputs_file "mnist_inputs.dat"
+#define weights_file "mnist_int_weights.dat"
+#define inputs_file "mnist_int_inputs.dat"
 #define CORDIC_ITERATIONS 10
 // activation function types
 // none - 0
@@ -22,9 +22,9 @@ typedef struct {
     // common results
     // no_outputs = no_inputs
     int output_shape;
-    long long **outputs;
+    int **outputs;
 } protocolIO;
 
-void read_weights(char *filename, long long ****weights, long long ***biases, int ***shapes, int *no_layers, int **activations);
-void read_inputs(char *filename, long long ***inputs, int *input_shape, int *no_inputs);
+void read_weights(char *filename, int ****weights, int ***biases, int ***shapes, int *no_layers, int **activations);
+void read_inputs(char *filename, int ***inputs, int *input_shape, int *no_inputs);
 void neuralnet(void *args);

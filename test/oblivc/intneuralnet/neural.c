@@ -51,15 +51,23 @@ int main(int argc, char *argv[])
     {
         for(int y=0; y<oy; y++)
         {
-            printf("%f ", io.outputs[x][y]);
+            printf("%d ", io.outputs[x][y]);
         }
+        free(io.outputs[x]);
         putchar('\n');
     }
+    // for(int x=0; x<ox; x++)
+    //     free(io.outputs[x]);
+    free(io.outputs);
+    for(int x=0; x<io.no_layers; x++)
+        free(io.shapes[x]);
+    free(io.shapes);
+    free(io.activations);
 
     return 0;
 }
 
-void read_weights(const char *filename, long long ****weights, long long ***biases, int ***shapes, int *no_layers, int **activations)
+void read_weights(const char *filename, int ****weights, int ***biases, int ***shapes, int *no_layers, int **activations)
 {
 	FILE *fptr = fopen(filename, "r");
 	fscanf(fptr, "%d", no_layers);
@@ -85,11 +93,11 @@ void read_weights(const char *filename, long long ****weights, long long ***bias
 		{
 			for(int y=0; y<n; y++)
 			{
-				fscanf(fptr, "%lld", &(*weights)[l][x][y]);
+				fscanf(fptr, "%d", &(*weights)[l][x][y]);
 			}
 		}
 		for(int x=0; x<n; x++)
-			fscanf(fptr, "%f", &(*biases)[l][x]);
+			fscanf(fptr, "%d", &(*biases)[l][x]);
         
         // read the activation function
         fscanf(fptr, "%d", &((*activations)[l]));
@@ -97,7 +105,7 @@ void read_weights(const char *filename, long long ****weights, long long ***bias
 	fclose(fptr);
 }
 
-void read_inputs(const char *filename, long long ***inputs, int *input_shape, int *no_inputs)
+void read_inputs(const char *filename, int ***inputs, int *input_shape, int *no_inputs)
 {
 	FILE *fptr = fopen(filename, "r");
 
@@ -114,7 +122,7 @@ void read_inputs(const char *filename, long long ***inputs, int *input_shape, in
 	for(int i=0; i<x; i++)
 	{
 		for(int j=0; j<y; j++)
-			fscanf(fptr, "%lld", &(*inputs)[i][j]);
+			fscanf(fptr, "%d", &(*inputs)[i][j]);
 	}
 
 	fclose(fptr);
