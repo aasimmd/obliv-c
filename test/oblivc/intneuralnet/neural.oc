@@ -48,37 +48,37 @@ void relu(obliv int input, obliv int *output)
   }
 }
 
-void sigmoid(obliv float z, obliv float *result)
+void sigmoid(obliv int z, obliv int *result)
 {
   // piecewise linear
-  obliv float modz, tmp;
-  float vals[] = {0.03125, 0.125, 0.25, 0.625, 0.84375};
+  obliv int modz, tmp;
+  int vals[] = {312, 1250, 2500, 6250, 8437};
   obliv if(z > 0) {
     modz = modz;
   } else {
     modz = -1 * z;
   }
-  modz = modz * 1000;
+  // modz = modz * 1000;
 
-  obliv if(modz >= 5000) {
+  obliv if(modz >= 50000) {
     tmp = 1;
   } 
-  obliv if(modz >= 2375) {
-    obliv if(modz < 5000)
+  obliv if(modz >= 23750) {
+    obliv if(modz < 50000)
     {
-      tmp = vals[0] * modz/1000 + vals[4];
+      tmp = (vals[0] * modz)/10000 + vals[4];
     }
   }
-  obliv if((modz >= 1000)) {
-    obliv if(modz < 2375)
+  obliv if((modz >= 10000)) {
+    obliv if(modz < 23750)
     {
-      tmp = vals[1] * modz/1000 + vals[3];
+      tmp = (vals[1] * modz)/10000 + vals[3];
     }
   } 
   obliv if((modz >= 0)) {
-    obliv if(modz < 1000)
+    obliv if(modz < 10000)
     {
-      tmp = vals[2] * modz/1000 + vals[2];
+      tmp = (vals[2] * modz)/10000 + vals[2];
     }
   }
 
@@ -216,18 +216,18 @@ void feedforward(obliv int **inputs, obliv int ***weights, obliv int **biases, i
         }
       }
     }
-    // else if(activations[l] == 2)
-    // {
-    //   obliv float tmp;
-    //   for(int x=0; x<opx; x++)
-    //   {
-    //     for(int y=0; y<opy; y++)
-    //     {
-    //       sigmoid((*outputs)[x][y], &tmp);
-    //       (*outputs)[x][y] = tmp;
-    //     }
-    //   }
-    // }
+    else if(activations[l] == 2)
+    {
+      obliv int tmp;
+      for(int x=0; x<opx; x++)
+      {
+        for(int y=0; y<opy; y++)
+        {
+          sigmoid((*outputs)[x][y], &tmp);
+          (*outputs)[x][y] = tmp;
+        }
+      }
+    }
     // else if(activations[l] == 3)
     // {
     //   obliv float tmp;
