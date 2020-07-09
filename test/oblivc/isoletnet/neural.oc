@@ -1,0 +1,436 @@
+#include<obliv.oh>
+#include "neural.h"
+
+void toObliv3D(protocolIO *io, int party, obliv float ***dest, float ***src, int n, int **shapes)
+{
+  // printf("%f ",src[0][4][0]);
+  for(int x=0; x<n; x++)
+  {
+    // printf("Operating on %d %d\n", shapes[x][0], shapes[x][1]);
+    for(int y=0; y<shapes[x][0]; y++)
+    {
+      for(int z=0; z<shapes[x][1]; z++)
+      {
+        dest[x][y][z] = feedOblivFloat(src[x][y][z], party);
+        // printf("Okay for %d %d %d\n", x, y, z);
+      }
+    }
+  }
+}
+
+void toObliv2D(protocolIO *io, int party, obliv float **dest, float **src, int m, int n)
+{
+  for(int x=0; x<m; x++)
+  {
+    for(int y=0; y<n; y++)
+    {
+      dest[x][y] = feedOblivFloat(src[x][y], party);
+    }
+  }
+}
+
+void toObliv1D(protocolIO *io, int party, obliv float *dest, float *src, int n)
+{
+  for(int x=0; x<n; x++)
+  {
+    dest[x] = feedOblivFloat(src[x], party);
+  }
+}
+
+// activation functions
+void relu(obliv float input, obliv float *output)
+{
+  obliv if(input > 0) {
+    *output = input;
+  }
+  else {
+    *output = 0;
+  }
+}
+
+void sigmoid(obliv float z, obliv float *result)
+{
+  // piecewise linear
+  obliv float modz, tmp;
+  float vals[] = {0.03125, 0.125, 0.25, 0.625, 0.84375};
+  obliv if(z > 0) {
+    modz = modz;
+  } else {
+    modz = -1 * z;
+  }
+  modz = modz * 1000;
+
+  obliv if(modz >= 5000) {
+    tmp = 1;
+  } 
+  obliv if(modz >= 2375) {
+    obliv if(modz < 5000)
+    {
+      tmp = vals[0] * modz/1000 + vals[4];
+    }
+  }
+  obliv if((modz >= 1000)) {
+    obliv if(modz < 2375)
+    {
+      tmp = vals[1] * modz/1000 + vals[3];
+    }
+  } 
+  obliv if((modz >= 0)) {
+    obliv if(modz < 1000)
+    {
+      tmp = vals[2] * modz/1000 + vals[2];
+    }
+  }
+
+  obliv if(z < 0){
+    tmp = 1 - tmp;
+  }
+
+  *result = tmp;
+}
+
+void activation_tanh(obliv float z, obliv float *result)
+{
+  // constants required for cordic
+  float inv2pws[] = {0.5, 0.25, 0.125, 0.0625, 0.03125, 0.015625, 0.0078125,\
+	       	0.00390625, 0.001953125, 0.0009765625, 0.00048828125, 0.000244140625, 0.0001220703125};
+	float tanangs[] = {0.5493061, 0.2554128, 0.1256572, 0.0625816, 0.0312602, \
+		0.0156263, 0.0078127, 0.0039063, 0.0019531, 0.0009766, 0.0004883, 0.0002441, 0.0001221};
+	float atable[] = {0.866025404, 0.838525492, 0.831948719, 0.83032223, 0.8299167, 0.829815386, \
+		0.829790061, 0.82978373, 0.829782148, 0.829781752, 0.829781653, 0.829781628, 0.829781622};
+	int len = CORDIC_ITERATIONS;
+  obliv float d;
+  obliv float x = 1, y = 0, x_, y_, z_;
+  
+  z = -z;
+  
+  for(int i=0; i<len; i++)
+  {
+    obliv if(z < 0)
+      d = -1;
+    else
+      d = 1;
+
+    x_ = x + y*d*inv2pws[i];
+		y_ = y + x*d*inv2pws[i];
+		z_ = z - d*tanangs[i];
+		x = x_;
+		y = y_;
+		z = z_;
+
+    // extra iterations at 3i+1 for convergence
+		if(i==4 || i==13 || i==40)
+		{
+			obliv if(z < 0)
+        d = -1;
+      else
+        d = 1;
+			x_ = x + y*d*inv2pws[i];
+			y_ = y + x*d*inv2pws[i];
+			z_ = z - d*tanangs[i];
+			x = x_;
+			y = y_;
+			z = z_;
+		}
+  }
+  // Normalize x and y
+	x = (x/atable[len-1]);
+	y = (y/atable[len-1]);
+
+  *result = (y/x);
+}
+
+void matmul(obliv float **mat1, obliv float **mat2, obliv float ***op, int m1, int n1, int m2, int n2, int party)
+{
+	// Multiply the matrices and store it in output
+	// Output is uninitialzed, allocate memory accordingly
+	
+	// Create a temporary matrix so that the call can be used as matmul(x, op, op);
+  *op = malloc((sizeof **op) * m1);
+  for(int x=0; x<m1; x++)
+    (*op)[x] = calloc(n2, sizeof *((*op)[x]));
+
+	obliv float tmpsum;
+	for(int x=0; x<m1; x++)
+	{
+    if(party == 1)
+      printf("evaluating input no: %d\n", x);
+		for(int y=0; y<n2; y++)
+		{
+      // if(party == 1)
+      //   printf("Evaluating %d out of %d for %d\n", y, n2, x);
+			tmpsum = 0;
+			for(int z=0; z<n1; z++)
+			{
+        tmpsum += mat1[x][z]*mat2[z][y];
+      }
+			(*op)[x][y] = tmpsum;
+		}
+	}
+}
+
+void add_bias(obliv float **output, obliv float *bias, int no_outputs, int len)
+{
+	for(int x=0; x<no_outputs; x++)
+	{
+		for(int y=0; y<len; y++)
+			output[x][y] += bias[y];
+	}
+}
+
+void feedforward(obliv float **inputs, obliv float ***weights, obliv float **biases, int **shapes, int no_layers, int no_inputs, int input_shape, obliv float ***outputs, int *activations)
+{
+	// inputs will be freed and realloced here, make sure it is a dynamic array
+	int opx, opy;
+	for(int l=0; l<no_layers; l++)
+	{
+    if(ocCurrentParty() == 1)
+      printf("Evaluating layer %d\n", l+1);
+		matmul(inputs, weights[l], outputs, no_inputs, input_shape, shapes[l][0], shapes[l][1], ocCurrentParty());
+		opx = no_inputs;
+		opy = shapes[l][1];
+		input_shape = opy;
+		add_bias(*outputs, biases[l], opx, opy);
+		// printf("Layer %d done\n", l+1);
+		
+		// Free and realloc inputs
+		for(int x=0; x<no_inputs; x++)
+			free(inputs[x]);
+		free(inputs);
+		inputs = malloc((sizeof *inputs) * opx);
+		for(int x=0; x<opx; x++)
+		{
+			inputs[x] = malloc((sizeof *inputs[x]) * opy); 
+			for(int y=0; y<opy; y++)
+				inputs[x][y] = (*outputs)[x][y];
+		}
+
+    // check which activtation function
+    if(activations[l] == 1)
+    {
+      for(int x=0; x<opx; x++)
+      {
+        for(int y=0; y<opy; y++)
+        {
+          relu((*outputs)[x][y], &((*outputs)[x][y]));
+        }
+      }
+    }
+    else if(activations[l] == 2)
+    {
+      obliv float tmp;
+      for(int x=0; x<opx; x++)
+      {
+        for(int y=0; y<opy; y++)
+        {
+          sigmoid((*outputs)[x][y], &tmp);
+          (*outputs)[x][y] = tmp;
+        }
+      }
+    }
+    else if(activations[l] == 3)
+    {
+      obliv float tmp;
+      for(int x=0; x<opx; x++)
+      {
+        for(int y=0; y<opy; y++)
+        {
+          activation_tanh((*outputs)[x][y], &tmp);
+          (*outputs)[x][y] = tmp;
+        }
+      }
+    }
+    
+		// printf("Successfully transferred %d\n", l+1);
+	}
+}
+
+void neuralnet(void *args)
+{
+  protocolIO *io = (protocolIO *)args;
+
+  // declare all variables openly
+  // variables not owned will have garbage
+  float ***weights, **biases, **inputs;
+
+  int *activations = NULL;
+
+  // fetch data
+  if(ocCurrentParty()==1)
+  {
+    read_weights(weights_file, &weights, &biases, &(io->shapes), &(io->no_layers), &(io->activations));
+  }
+  else
+  {
+    read_inputs(inputs_file, &inputs, &(io->input_shape), &(io->no_inputs));
+  }
+
+  // printf("Fetched values from the file\n");
+
+  // broadcast io variables
+  int **shapes;
+  int input_shape, no_layers, no_inputs;
+  no_layers = ocBroadcastInt(io->no_layers, 1);
+  shapes = malloc(sizeof(*shapes) * no_layers);
+
+  input_shape = ocBroadcastInt(io->input_shape, 2);
+  no_inputs = ocBroadcastInt(io->no_inputs, 2);
+  
+  if(!io->activations)
+    io->activations = malloc((sizeof *(io->activations)) * no_layers);
+  if(!activations)
+    activations = malloc((sizeof *activations) * no_layers);
+  for(int x=0; x<no_layers; x++)
+    activations[x] = ocBroadcastInt(io->activations[x], 1);
+  
+  // for(int y=0; y<no_layers; y++)
+  //   printf("%d ", activations[y]);
+  // putchar('\n');
+
+  if(!io->shapes)
+  {
+    io->shapes = malloc((sizeof(*(io->shapes))) * no_layers);
+    for(int n=0; n<no_layers; n++)
+      (io->shapes)[n] = malloc((sizeof(*((io->shapes)[n]))) * 2);
+  }
+
+  for(int x=0; x<no_layers; x++)
+  {
+    // printf("Allocated for %d\n", x);
+    shapes[x] = malloc(sizeof(*(shapes[x])) * 2);
+    shapes[x][0] = ocBroadcastInt((io->shapes)[x][0], 1);
+    shapes[x][1] = ocBroadcastInt((io->shapes)[x][1], 1);
+  }
+  // printf("Shared crucial information\n");
+
+  // allocate space for garbage variables
+  if(ocCurrentParty() == 1)
+  {
+    // alloc inputs
+    // float **inputs
+    inputs = malloc(sizeof(*inputs) * no_inputs);
+    for(int i=0; i<no_inputs; i++)
+      inputs[i] = malloc(sizeof(*(inputs[i])) * input_shape);
+  }
+  else
+  {
+    // alloc weights and biases
+    // float ***weights, **biases
+    weights = malloc(sizeof(*weights) * no_layers);
+    for(int n=0; n<no_layers; n++)
+    {
+      weights[n] = malloc(sizeof(*(weights[n])) * shapes[n][0]);
+      for(int z=0; z<shapes[n][0]; z++)
+        weights[n][z] = malloc(sizeof(*(weights[n][z])) * shapes[n][1]);
+    }
+    biases = malloc(sizeof(*biases) * no_layers);
+    for(int n=0; n<no_layers; n++)
+      biases[n] = malloc(sizeof(*(biases[n])) * shapes[n][1]);
+
+    // special mention, alloc for io->shapes too
+  }
+
+  // printf("Input shape : %d & %d\n", no_inputs, input_shape);
+
+  // make oblivious structures
+  obliv float ***oweights = malloc((sizeof *oweights) * no_layers);
+  obliv float **obiases = malloc((sizeof *obiases) * no_layers);
+  obliv float **oinputs = malloc((sizeof *oinputs) * no_inputs);
+
+  // allocate space at all levels
+  for(int x=0; x<no_layers; x++)
+  {
+    // printf("Shapes: %d %d\n", shapes[x][0], shapes[x][1]);
+    obiases[x] = malloc((sizeof *(obiases[x])) * shapes[x][1]);
+  }
+  for(int x=0; x<no_inputs; x++)
+    oinputs[x] = malloc((sizeof *(oinputs[x])) * input_shape);
+  
+  for(int x=0; x<no_layers; x++)
+  {
+    oweights[x] = malloc((sizeof *(oweights[x])) * shapes[x][0]);
+    for(int y=0; y<shapes[x][0]; y++)
+      oweights[x][y] = malloc((sizeof *(oweights[x][y])) * shapes[x][1]);
+  }
+  // oweights[0][4][0] = oweights[0][0][0];
+  // printf("Shapes are:\n");
+  // for(int i=0; i<no_layers; i++)
+  //   printf("%d %d\n", shapes[i][0], shapes[i][1]);
+  
+  // printf("Allocated space for oblivious structures\n");
+
+  // transfer data to oblivious structures
+  toObliv2D(io, 2, oinputs, inputs, no_inputs, input_shape);
+  for(int x=0; x<no_layers; x++)
+    toObliv1D(io, 1, obiases[x], biases[x], shapes[x][1]);
+  // toObliv3D(io, 1, oweights, weights, no_layers, shapes);
+  for(int x=0; x<no_layers; x++)
+  {
+    for(int y=0; y<shapes[x][0]; y++)
+    {
+      // printf("Transfer for %d & %d\n", x, y);
+      toObliv1D(io, 1, oweights[x][y], weights[x][y], shapes[x][1]);
+    }
+  }
+  // printf("Fed weights into oblivion\n");
+
+  // printf("Fed oblivious structures with data\n");
+
+  // perform feed-forward and reveal results
+  obliv float **outputs;
+  feedforward(oinputs, oweights, obiases, shapes, no_layers, no_inputs, input_shape, &outputs, activations);
+
+  int out_x = no_inputs, out_y = shapes[no_layers-1][1];
+
+  // reveal outputs into io
+  io->outputs = malloc((sizeof *(io->outputs)) * out_x);
+  for(int x=0; x<out_x; x++)
+  {
+    io->outputs[x] = malloc((sizeof *(io->outputs[x])) * out_y);
+    for(int y=0; y<out_y; y++)
+      revealOblivFloat(&io->outputs[x][y], outputs[x][y], 2);
+  }
+  
+  // add details to io
+  io->output_shape = out_y;
+  io->no_inputs = out_x;
+
+  // free-up memory
+  for(int l=0; l<no_layers; l++)
+  {
+    for(int y=0; y<shapes[l][0]; y++)
+      free(weights[l][y]);
+    free(weights[l]);
+  }
+  free(weights);
+
+  for(int l=0; l<no_layers; l++)
+    free(biases[l]);
+  free(biases);
+
+  for(int x=0; x<no_inputs; x++)
+    free(inputs[x]);
+  free(inputs);
+
+  free(activations);
+
+  for(int x=0; x<no_layers; x++)
+    free(shapes[x]);
+  free(shapes);
+
+  // for(int l=0; l<no_layers; l++)
+  // {
+  //   for(int y=0; y<shapes[l][0]; y++)
+  //     free(oweights[l][y]);
+  //   free(oweights[l]);
+  // }
+  // free(oweights);
+
+  // for(int l=0; l<no_layers; l++)
+  //   free(obiases[l]);
+  // free(obiases);
+
+  // for(int x=0; x<no_inputs; x++)
+  //   free(oinputs[x]);
+  // free(oinputs);
+}
