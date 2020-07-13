@@ -1,0 +1,38 @@
+Memory and gate-count benchmarks, 1 image per ANN
+
+1. Pruned lenet integer
+Gates: 1.02e+07 : 1021095
+Comm. Memory: 337 MB
+
+2. Pruned isolet integer
+Gates: 1.43e+06 : 1431060
+Comm. 47 MB
+
+3. Lenet integer
+Gates: 5.07e+08 : 507955800
+Comm. Memory: ..?   // Most likely 15 GB
+
+4. Isolet integer
+Gates: 6.34e+07 : 63424900
+Comm. Memory: 1934 MB
+
+5. Pruned lenet float
+Gates: 2.4e+07 : 24228320
+Comm. Memory: 797 MB
+
+6. Pruned isolet float
+Gates: 2.9e+06 : 2914563
+Comm. Memory: 95 MB
+
+7. Lenet float
+Gates: 1.21e+09 : 1216800890
+Comm. Memory: ..? // Most likely 37 GB
+
+8. Isolet float
+Gates: 1.49e+08 : 149366163
+Comm. Memory: ..? // Most likely 4.4 GB
+
+
+// Commands used:
+tcpdump -i lo port 8080 -w x.dump
+capinfos x.dump

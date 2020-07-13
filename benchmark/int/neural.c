@@ -51,10 +51,12 @@ int main(int argc, char *argv[])
     {
         for(int y=0; y<oy; y++)
         {
-            printf("%d ", io.outputs[x][y]);
+            if(party_id != 1)
+                printf("%d ", io.outputs[x][y]);
         }
         free(io.outputs[x]);
-        putchar('\n');
+        if(party_id != 1)
+            putchar('\n');
     }
     // for(int x=0; x<ox; x++)
     //     free(io.outputs[x]);

@@ -390,6 +390,10 @@ void neuralnet(void *args)
     for(int y=0; y<out_y; y++)
       revealOblivFloat(&io->outputs[x][y], outputs[x][y], 2);
   }
+
+  unsigned int no_gates_ann = yaoGateCount();
+  if(ocCurrentParty() == 1)
+    printf("No of gates: %e : %u\n", (float)no_gates_ann, no_gates_ann);
   
   // add details to io
   io->output_shape = out_y;

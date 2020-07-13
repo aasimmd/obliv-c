@@ -39,7 +39,8 @@ for i in range(len(clean_output)):
         clean_output[i] = 600.0
     elif clean_output[i] <= -600:
         clean_output[i] = -600.0
-print(clean_output)
+with open('client.log', 'w') as wire:
+    print(clean_output, file=wire)
 
 outputs = []
 for _ in range(no_outputs):
@@ -69,8 +70,7 @@ for index, prediction in enumerate(outputs):
     #     print(y, ":", x)
     pred_index = argmax(probs)
     predictions.append(pred_index)
-    print("True result:", true_results[index])
-    print("Predicted result:", pred_index)
+    print(f"True vs Pred: {true_results[index]: <3} | {pred_index: <3}")
     metrics.append(pred_index == true_results[index])
 
 print(predictions)

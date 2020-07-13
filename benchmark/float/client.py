@@ -68,8 +68,7 @@ for index, prediction in enumerate(outputs):
     #     print(y, ":", x)
     pred_index = argmax(probs)
     predictions.append(pred_index)
-    print("True result:", true_results[index])
-    print("Predicted result:", pred_index)
+    print(f"True vs Pred: {true_results[index]: <3} | {pred_index: <3}")
     metrics.append(pred_index == true_results[index])
 
 print(predictions)
