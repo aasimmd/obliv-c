@@ -1,7 +1,7 @@
 OBLIVCC=../../bin/oblivcc
 RUNTIME=../../_build/libobliv.a
 CILPATH=../../
-CFLAGS=-g -Wall
+CFLAGS=-g -Wall -O2
 testName=neural
 
 ./a.out: $(testName).oc $(testName).c ../util/util.c $(RUNTIME)

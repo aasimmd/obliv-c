@@ -23,7 +23,7 @@ if not stderr:
 # print(stdout.decode().strip())
 # print(stderr.decode().strip())
 
-print("time taken:", end-start, "s")
+print("Total time taken:", end-start, "s")
 
 clean_output = stdout.decode().strip().split()
 # print(clean_output)
@@ -34,9 +34,9 @@ clean_output = clean_output[2:]
 clean_output = list(map(float, clean_output))
 # For math exp fix this
 for i in range(len(clean_output)):
-    if clean_output[i] >= 600:
+    if clean_output[i] > 600:
         clean_output[i] = 600.0
-    elif clean_output[i] <= -600:
+    elif clean_output[i] < -600:
         clean_output[i] = -600.0
 print(clean_output)
 

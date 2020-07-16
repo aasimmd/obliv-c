@@ -23,7 +23,7 @@ if not stderr:
 # print(stdout.decode().strip())
 # print(stderr.decode().strip())
 
-print("time taken:", end-start, "s")
+print("Total time taken:", end-start, "s")
 
 clean_output = stdout.decode().strip().split()
 # print(clean_output)

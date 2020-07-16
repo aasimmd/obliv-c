@@ -4,8 +4,8 @@
 // server provides the weights
 int party_id;
 
-#define weights_file "lenet_weights.dat"
-#define inputs_file "lenet_inputs.dat"
+#define weights_file "pruned_lenet_weights.dat"
+#define inputs_file "pruned_lenet_inputs.dat"
 #define CORDIC_ITERATIONS 10
 // activation function types
 // none - 0

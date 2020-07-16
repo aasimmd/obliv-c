@@ -1,5 +1,6 @@
 #include<obliv.oh>
 #include "neural.h"
+#include <time.h>
 
 void toObliv3D(protocolIO *io, int party, obliv int ***dest, int ***src, int n, int **shapes)
 {
@@ -154,12 +155,12 @@ void matmul(obliv int **mat1, obliv int **mat2, obliv int ***op, int m1, int n1,
       printf("evaluating input no: %d\n", x);
 		for(int y=0; y<n2; y++)
 		{
-      if(party == 1)
-      {
-        printf("Evaluating %d out of %d for %d\n", y, n2, x);
-      //   putchar('^[[2K');
-      //   putchar('\r');
-      }
+      // if(party == 1)
+      // {
+      //   printf("Evaluating %d out of %d for %d\n", y, n2, x);
+      // //   putchar('^[[2K');
+      // //   putchar('\r');
+      // }
 			tmpsum = 0;
 			for(int z=0; z<n1; z++)
 			{
@@ -379,7 +380,13 @@ void neuralnet(void *args)
 
   // perform feed-forward and reveal results
   obliv int **outputs;
+  clock_t start, end;
+  double time_used;
+  start = clock();
   feedforward(oinputs, oweights, obiases, shapes, no_layers, no_inputs, input_shape, &outputs, activations);
+  end = clock();
+
+  time_used = ((double)(end-start))/CLOCKS_PER_SEC;
 
   int out_x = no_inputs, out_y = shapes[no_layers-1][1];
 
@@ -394,7 +401,11 @@ void neuralnet(void *args)
 
   unsigned int no_gates_ann = yaoGateCount();
   if(ocCurrentParty() == 1)
+  {
     printf("No of gates: %e : %u\n", (float)no_gates_ann, no_gates_ann);
+    printf("True execution time: %lf s\n", time_used);
+    printf("Avg per input: %lf s\n", time_used/no_inputs);
+  }
   
   // add details to io
   io->output_shape = out_y;

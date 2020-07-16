@@ -14,4 +14,4 @@ end = time.time()
 # print(stdout.decode().strip())
 # print(stderr.decode().strip())
 
-print("time taken:", end-start, "s")
+print("Total time taken:", end-start, "s")
