@@ -4,9 +4,9 @@
 // server provides the weights
 int party_id;
 
-#define weights_file "pruned_isolet_int_weights.dat"
-#define inputs_file "pruned_isolet_int_inputs.dat"
-#define CORDIC_ITERATIONS 10
+#define weights_file "pruned_sports_int_weights.dat"
+#define inputs_file "pruned_sports_int_inputs.dat"
+#define CORDIC_ITERATIONS 12
 // activation function types
 // none - 0
 // relu - 1
