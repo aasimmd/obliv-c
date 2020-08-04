@@ -102,30 +102,30 @@ void activation_tanh(obliv int z, obliv int *result)
   
   z = -z;
   
-  for(int i=0; i<len; i++)
+  for(int i=1; i<=len; i++)
   {
     obliv if(z < 0)
       d = -1;
     else
       d = 1;
 
-    x_ = x + (y*d)/inv2pws[i];
-		y_ = y + (x*d)/inv2pws[i];
-		z_ = z - (d*tanangs[i]);
+    x_ = x + (y*d)/inv2pws[i-1];
+		y_ = y + (x*d)/inv2pws[i-1];
+		z_ = z - (d*tanangs[i-1]);
 		x = x_;
 		y = y_;
 		z = z_;
 
     // extra iterations at 3i+1 for convergence
-		if(i==4 || i==13 || i==40)
+		if(i == 1 || i==4 || i==13 || i==40)
 		{
 			obliv if(z < 0)
         d = -1;
       else
         d = 1;
-			x_ = x + (y*d)/inv2pws[i];
-			y_ = y + (x*d)/inv2pws[i];
-			z_ = z - (d*tanangs[i]);
+			x_ = x + (y*d)/inv2pws[i-1];
+			y_ = y + (x*d)/inv2pws[i-1];
+			z_ = z - (d*tanangs[i-1]);
 			x = x_;
 			y = y_;
 			z = z_;
@@ -135,7 +135,7 @@ void activation_tanh(obliv int z, obliv int *result)
 	x = ((x*10000)/atable[len-1]);
 	y = ((y*10000)/atable[len-1]);
 
-  *result = (10000*y)/x;
+  *result = -(10000*y)/x;
 }
 
 void matmul(obliv int **mat1, obliv int **mat2, obliv int ***op, int m1, int n1, int m2, int n2, int party)

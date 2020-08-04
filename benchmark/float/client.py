@@ -5,7 +5,8 @@ import math
 
 MNIST = 1
 ISOLET = 2
-nntype = MNIST
+SPORTS = 3
+nntype = SPORTS
 
 proc = subprocess.Popen(['./a.out', 'localhost:8080', '2'],
 stdin=subprocess.PIPE,
@@ -34,11 +35,13 @@ clean_output = clean_output[2:]
 clean_output = list(map(float, clean_output))
 # For math exp fix this
 for i in range(len(clean_output)):
-    if clean_output[i] > 600:
+    clean_output[i] = clean_output[i]/10000
+    if clean_output[i] >= 600:
         clean_output[i] = 600.0
-    elif clean_output[i] < -600:
+    elif clean_output[i] <= -600:
         clean_output[i] = -600.0
-print(clean_output)
+with open('client.log', 'w') as wire:
+    print(clean_output, file=wire)
 
 outputs = []
 for _ in range(no_outputs):
@@ -53,6 +56,9 @@ if nntype == ISOLET:
 elif nntype == MNIST:
     classes = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
     true_results = [7, 2, 1, 0, 4, 1, 4, 9, 5, 9, 0, 6, 9, 0, 1, 5, 9, 7, 3, 4, 9, 6, 6, 5, 4, 0, 7, 4, 0, 1, 3, 1, 3, 4, 7, 2, 7, 1, 2, 1, 1, 7, 4, 2, 3, 5, 1, 2, 4, 4, 6, 3, 5, 5, 6, 0, 4, 1, 9, 5, 7, 8, 9, 3, 7, 4, 6, 4, 3, 0, 7, 0, 2, 9, 1, 7, 3, 2, 9, 7, 7, 6, 2, 7, 8, 4, 7, 3, 6, 1, 3, 6, 9, 3, 1, 4, 1, 7, 6, 9]
+elif nntype == SPORTS:
+    classes = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18"]
+    true_results = [2, 14, 18, 7, 6, 16, 6, 1, 5, 6, 13, 7, 7, 11, 18, 17, 3, 17, 14, 16, 1, 11, 2, 5, 7, 15, 7, 6, 13, 15, 1, 14, 2, 12, 12, 1, 13, 4, 0, 0, 16, 9, 7, 3, 3, 10, 4, 14, 13, 6, 12, 6, 12, 4, 6, 5, 2, 7, 5, 7, 16, 0, 5, 12, 12, 6, 18, 7, 8, 14, 16, 10, 17, 13, 6, 2, 15, 17, 1, 18, 3, 17, 13, 6, 10, 14, 11, 3, 14, 16, 1, 4, 0, 2, 8, 4, 18, 10, 6, 14]
 probabilities = []
 argmax = lambda x: x.index(max(x))
 metrics = []

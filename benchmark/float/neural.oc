@@ -105,30 +105,30 @@ void activation_tanh(obliv float z, obliv float *result)
   
   z = -z;
   
-  for(int i=0; i<len; i++)
+  for(int i=1; i<=len; i++)
   {
     obliv if(z < 0)
       d = -1;
     else
       d = 1;
 
-    x_ = x + y*d*inv2pws[i];
-		y_ = y + x*d*inv2pws[i];
-		z_ = z - d*tanangs[i];
+    x_ = x + y*d*inv2pws[i-1];
+		y_ = y + x*d*inv2pws[i-1];
+		z_ = z - d*tanangs[i-1];
 		x = x_;
 		y = y_;
 		z = z_;
 
     // extra iterations at 3i+1 for convergence
-		if(i==4 || i==13 || i==40)
+		if(i == 1 || i==4 || i==13 || i==40)
 		{
 			obliv if(z < 0)
         d = -1;
       else
         d = 1;
-			x_ = x + y*d*inv2pws[i];
-			y_ = y + x*d*inv2pws[i];
-			z_ = z - d*tanangs[i];
+			x_ = x + y*d*inv2pws[i-1];
+			y_ = y + x*d*inv2pws[i-1];
+			z_ = z - d*tanangs[i-1];
 			x = x_;
 			y = y_;
 			z = z_;
@@ -138,7 +138,7 @@ void activation_tanh(obliv float z, obliv float *result)
 	x = (x/atable[len-1]);
 	y = (y/atable[len-1]);
 
-  *result = (y/x);
+  *result = -(y/x);
 }
 
 void matmul(obliv float **mat1, obliv float **mat2, obliv float ***op, int m1, int n1, int m2, int n2, int party)
@@ -236,6 +236,8 @@ void feedforward(obliv float **inputs, obliv float ***weights, obliv float **bia
       {
         for(int y=0; y<opy; y++)
         {
+          if(ocCurrentParty() == 1)
+            printf("Using tanh\n");
           activation_tanh((*outputs)[x][y], &tmp);
           (*outputs)[x][y] = tmp;
         }

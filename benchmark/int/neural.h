@@ -6,7 +6,7 @@ int party_id;
 
 #define weights_file "pruned_sports_int_weights.dat"
 #define inputs_file "pruned_sports_int_inputs.dat"
-#define CORDIC_ITERATIONS 12
+#define CORDIC_ITERATIONS 10
 // activation function types
 // none - 0
 // relu - 1
