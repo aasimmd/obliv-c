@@ -4,8 +4,6 @@
 // server provides the weights
 int party_id;
 
-#define weights_file "smol_pruned_sports_weights.dat"
-#define inputs_file "pruned_sports_inputs.dat"
 #define CORDIC_ITERATIONS 1
 // activation function types
 // none - 0
@@ -18,6 +16,7 @@ typedef struct {
     int input_shape, no_inputs;
     int no_layers, **shapes;
     int *activations;
+    char *weights_file, *inputs_file;
 
     // common results
     // no_outputs = no_inputs

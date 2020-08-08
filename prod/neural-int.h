@@ -4,9 +4,7 @@
 // server provides the weights
 int party_id;
 
-#define weights_file "smol_pruned_sports_weights.dat"
-#define inputs_file "pruned_sports_inputs.dat"
-#define CORDIC_ITERATIONS 1
+#define CORDIC_ITERATIONS 10
 // activation function types
 // none - 0
 // relu - 1
@@ -18,13 +16,14 @@ typedef struct {
     int input_shape, no_inputs;
     int no_layers, **shapes;
     int *activations;
+    char *weights_file, *inputs_file;
 
     // common results
     // no_outputs = no_inputs
     int output_shape;
-    float **outputs;
+    int **outputs;
 } protocolIO;
 
-void read_weights(char *filename, float ****weights, float ***biases, int ***shapes, int *no_layers, int **activations);
-void read_inputs(char *filename, float ***inputs, int *input_shape, int *no_inputs);
+void read_weights(char *filename, int ****weights, int ***biases, int ***shapes, int *no_layers, int **activations);
+void read_inputs(char *filename, int ***inputs, int *input_shape, int *no_inputs);
 void neuralnet(void *args);
