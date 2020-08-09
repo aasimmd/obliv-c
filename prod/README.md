@@ -13,11 +13,13 @@ The structure of the data directory is:
 .
 ├── inputs
 │   ├── isolet
+│   │   ├── projection-matrix.npy
 │   │   ├── v0-float.dat
 │   │   ├── v0-int.dat
 │   │   ├── v0-pruned-float.dat
 │   │   └── v0-pruned-int.dat
 │   ├── lenet
+│   │   ├── projection-matrix.npy
 │   │   ├── v0-float.dat
 │   │   └── ...
 │   └── sports
@@ -32,7 +34,8 @@ The structure of the data directory is:
     └── sports
         └── v0-pruned-xs-float.dat
 ```
-The file names are of the format **version**-**dtype**.dat
+The file names are of the format **version**-**dtype**.dat  
+The projection matrices required to prep the inputs are also present.
 
 ## Usage:
 1. Run the server, for example:  
